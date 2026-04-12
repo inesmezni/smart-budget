@@ -15,13 +15,13 @@ export default function Budgets() {
   const router = useRouter();
 
   const { budgets, isLoading, chargerBudgets, supprimer } = useBudgetStore();
-  const { totalDepense, totalBudget, chargerDepenses } = useDepenseStore();
+  const totalBudget = budgets.reduce((acc, b) => acc + b.montant_limite, 0);
+  const totalDepense = budgets.reduce((acc, b) => acc + b.montant_depense, 0);
 
   // Recharger à chaque fois que l'écran devient visible
   useFocusEffect(
     useCallback(() => {
       chargerBudgets(mois, annee);
-      chargerDepenses(mois, annee);
     }, [mois, annee])
   );
 
@@ -64,12 +64,6 @@ export default function Budgets() {
               month: 'long', year: 'numeric',
             })}
           </Text>
-          <TouchableOpacity
-            style={styles.btnAjouterHeader}
-            onPress={() => router.push('/modals/add-budget')}
-          >
-            <Ionicons name="add" size={20} color="#185FA5" />
-          </TouchableOpacity>
         </View>
 
         {/* Carte budget total */}
