@@ -21,6 +21,7 @@ export async function getAlerteById(id: number): Promise<Alerte | null> {
   return result[0] ?? null;
 }
 
+
 // Récupérer toutes les alertes avec les détails du budget associé
 export async function getToutesAlertes(): Promise<AlerteAvecBudget[]> {
   return await executeSql<AlerteAvecBudget[]>(
@@ -82,4 +83,30 @@ export async function marquerToutesAlertesLues(): Promise<void> {
 export async function supprimerAlerte(id: number): Promise<void> {
   await executeSql('DELETE FROM alertes WHERE id = ?', [id]);
   console.log('✅ Alerte supprimée, id:', id);
+}
+
+// ── Vérifier si alerte existe déjà ──────────────────
+export async function alerteExisteDeja(
+  budget_id: number,
+  type: string
+): Promise<boolean> {
+  const result = await executeSql<{ count: number }[]>(
+    `SELECT COUNT(*) as count FROM alertes
+     WHERE budget_id = ? AND type = ? AND lu = 0`,
+    [budget_id, type]
+  );
+  return (result[0]?.count ?? 0) > 0;
+}
+
+// ── Nettoyer les doublons existants ──────────────────
+export async function nettoyerAlertesDupliquees(): Promise<void> {
+  await executeSql(`
+    DELETE FROM alertes
+    WHERE id NOT IN (
+      SELECT MIN(id)
+      FROM alertes
+      GROUP BY budget_id, type, lu
+    )
+  `);
+  console.log('✅ Alertes dupliquées supprimées');
 }

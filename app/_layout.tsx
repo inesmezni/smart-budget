@@ -2,15 +2,19 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, View, Text } from 'react-native';
 import { Stack } from 'expo-router';
 import { migrateDatabase } from '../src/db/migrations';
+import { nettoyerAlertesDupliquees } from '../src/db/repositories/alerteRepo';
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     migrateDatabase()
+      .then(() => nettoyerAlertesDupliquees())
       .then(() => setIsReady(true))
       .catch(console.error);
   }, []);
+
+
 
   if (!isReady) {
     return (
