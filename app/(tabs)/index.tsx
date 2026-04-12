@@ -45,7 +45,6 @@ export default function Dashboard() {
       <View style={styles.pageHeader}>
         <View>
           <Text style={styles.greeting}>Bonjour</Text>
-          <Text style={styles.title}>Suivi de budget</Text>
         </View>
         <Text style={styles.dateLabel}>
           {new Date().toLocaleDateString('fr-FR', {
@@ -58,7 +57,7 @@ export default function Dashboard() {
       {/* Carte solde */}
       <View style={styles.soldeCard}>
         <View style={styles.soldeHeading}>
-          <Text style={styles.soldeLabel}>Solde restant</Text>
+          <Text style={styles.soldeLabel}>Solde restant ce mois</Text>
           <Text style={[styles.percentLabel, { color: couleurTotal }]}>
             {pourcentageTotal}%
           </Text>
@@ -138,12 +137,7 @@ export default function Dashboard() {
             const pctAffiche = Math.min(pct, 100);
             const couleurBarre = pct > 100 ? '#A32D2D'
               : pct >= 80 ? '#BA7517' : '#3B6D11';
-            const statutText = pct > 100
-              ? `✕ Dépassé (+${(pct - 100).toFixed(1)}%)`
-              : pct === 100 ? '⚠ Limite atteinte'
-              : pct >= 80 ? '⚠ Proche limite'
-              : '✓ OK';
-
+          
             return (
               <View key={budget.id} style={styles.budgetItem}>
                 <View style={styles.budgetTop}>
@@ -165,7 +159,7 @@ export default function Dashboard() {
                     {budget.montant_depense.toFixed(2)} / {budget.montant_limite.toFixed(2)} TND
                   </Text>
                   <Text style={[styles.statutText, { color: couleurBarre }]}>
-                    {statutText}
+                    
                   </Text>
                 </View>
               </View>
