@@ -13,7 +13,8 @@ const ANNEE_ACTUELLE = new Date().getFullYear();
 
 export default function Dashboard() {
   const router = useRouter();
-  const { totalDepense, solde, totalBudget, isLoading, chargerDepenses } = useDepenseStore();
+
+  const { totalDepense, solde, isLoading, chargerDepenses } = useDepenseStore();
   const { budgets, chargerBudgets } = useBudgetStore();
   const { alertes, nombreNonLues, marquerToutesLues } = useAlerteStore();
 
@@ -24,6 +25,16 @@ export default function Dashboard() {
     }, [])
   );
 
+
+  const totalBudget = budgets.reduce((acc, b) => acc + b.montant_limite, 0);
+  const totalDepenseReel = budgets.reduce((acc, b) => acc + b.montant_depense, 0);
+
+  const pourcentageTotal = totalBudget > 0
+    ? Math.round((totalDepenseReel / totalBudget) * 100) : 0;
+
+  const couleurTotal = pourcentageTotal > 100 ? '#A32D2D'
+    : pourcentageTotal >= 80 ? '#BA7517' : '#3B6D11';
+
   if (isLoading) {
     return (
       <View style={styles.center}>
@@ -32,12 +43,6 @@ export default function Dashboard() {
     );
   }
 
-  const pourcentageTotal = totalBudget > 0
-    ? Math.round((totalDepense / totalBudget) * 100) : 0;
-
-  const couleurTotal = pourcentageTotal > 100 ? '#A32D2D'
-    : pourcentageTotal >= 80 ? '#BA7517' : '#3B6D11';
-
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
@@ -45,6 +50,7 @@ export default function Dashboard() {
       <View style={styles.pageHeader}>
         <View>
           <Text style={styles.greeting}>Bonjour</Text>
+          <Text style={styles.title}>Suivi de budget</Text>
         </View>
         <Text style={styles.dateLabel}>
           {new Date().toLocaleDateString('fr-FR', {
@@ -53,7 +59,6 @@ export default function Dashboard() {
         </Text>
       </View>
 
-  
       {/* Carte solde */}
       <View style={styles.soldeCard}>
         <View style={styles.soldeHeading}>
@@ -70,7 +75,7 @@ export default function Dashboard() {
           }]} />
         </View>
         <Text style={styles.soldeSub}>
-          {totalDepense.toFixed(2)} TND dépensés sur {totalBudget.toFixed(2)} TND
+          {totalDepenseReel.toFixed(2)} TND dépensés sur {totalBudget.toFixed(2)} TND
         </Text>
       </View>
 
@@ -79,13 +84,13 @@ export default function Dashboard() {
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Dépensé</Text>
           <Text style={[styles.statValue, { color: '#A32D2D' }]}>
-            {totalDepense.toFixed(2)} TND
+            {totalDepenseReel.toFixed(2)} TND
           </Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Restant</Text>
           <Text style={[styles.statValue, { color: '#3B6D11' }]}>
-            {solde.toFixed(2)} TND
+            {(totalBudget - totalDepenseReel).toFixed(2)} TND
           </Text>
         </View>
       </View>
@@ -137,7 +142,9 @@ export default function Dashboard() {
             const pctAffiche = Math.min(pct, 100);
             const couleurBarre = pct > 100 ? '#A32D2D'
               : pct >= 80 ? '#BA7517' : '#3B6D11';
-          
+            const statut = pct > 100 ? '✕ Dépassé'
+              : pct >= 80 ? '⚠ Proche' : '✓ OK';
+
             return (
               <View key={budget.id} style={styles.budgetItem}>
                 <View style={styles.budgetTop}>
@@ -145,7 +152,7 @@ export default function Dashboard() {
                     {budget.categorie_icone}  {budget.categorie_nom}
                   </Text>
                   <Text style={[styles.budgetPct, { color: couleurBarre }]}>
-                    {pct}%
+                    {Math.round(pct)}%
                   </Text>
                 </View>
                 <View style={styles.progressBar}>
@@ -159,7 +166,7 @@ export default function Dashboard() {
                     {budget.montant_depense.toFixed(2)} / {budget.montant_limite.toFixed(2)} TND
                   </Text>
                   <Text style={[styles.statutText, { color: couleurBarre }]}>
-                    
+                    {statut}
                   </Text>
                 </View>
               </View>
@@ -185,21 +192,6 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 16, color: '#888' },
   title: { fontSize: 26, fontWeight: '700', color: '#185FA5' },
   dateLabel: { fontSize: 12, color: '#888', textTransform: 'capitalize' },
-
-  shortcutsRow: {
-    flexDirection: 'row', gap: 12,
-    marginHorizontal: 16, marginBottom: 16,
-  },
-  shortcutBtn: {
-    flex: 1, padding: 14,
-    backgroundColor: '#fff', borderRadius: 14,
-    borderWidth: 0.5, borderColor: '#eee',
-  },
-  shortcutTitle: {
-    fontSize: 13, fontWeight: '600',
-    color: '#185FA5', marginBottom: 4,
-  },
-  shortcutSub: { fontSize: 11, color: '#888' },
 
   soldeCard: {
     marginHorizontal: 16, padding: 20,
@@ -264,7 +256,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', marginTop: 6,
   },
   budgetSub: { fontSize: 11, color: '#888' },
-  statutText: { fontSize: 11, fontWeight: '500' },
+  statutText: { fontSize: 11, fontWeight: '600' },
 
   progressBar: {
     height: 6, backgroundColor: '#eee',
