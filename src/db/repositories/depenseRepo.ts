@@ -106,6 +106,7 @@ export async function getTotalDepensesParMois(
   mois: number,
   annee: number
 ): Promise<number> {
+  
   const result = await executeSql<{ total: number }[]>(
     `SELECT COALESCE(SUM(montant), 0) AS total
      FROM depenses
